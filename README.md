@@ -52,8 +52,8 @@ npm ci
 npx playwright install
 
 # set environment variables (Windows CMD)
-set USERNAME=<email@example.com>
-set PASSWORD=<password>
+set USERNAME=email@example.com
+set PASSWORD=password
 
 # run tests (headed mode)
 npx playwright test 
