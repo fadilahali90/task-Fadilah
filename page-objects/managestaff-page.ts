@@ -43,7 +43,20 @@ export class manageStaff {
 
     }
   }
+  async clearEnvironment() {
+    const checkStaff = await this.getCurrentTotalStaff()
 
+    while ((await this.getCurrentTotalStaff()) > 0) {
+      await this.page.locator('tbody tr.q-tr').first().click()
+      await expect(this.modal).toContainText('Edit Staff')
+      await this.deleteBtn.first().click()
+      const deleteDialog = this.page.locator('.q-dialog', { has: this.page.getByText('Confirm Delete', { exact: true }) })
+      await expect(deleteDialog).toBeVisible({ timeout: 10000 })
+      await deleteDialog.getByRole('button', { name: 'CONFIRM' }).click()
+      await this.page.waitForTimeout(1000)
+    }
+
+  }
   async loginPage(name: string, pwd: string) {
     await this.page.goto("https://hq.staging.qashier.com/employee-management")
     await this.page.getByPlaceholder("Enter your email address", { exact: true }).fill(name)
@@ -52,7 +65,7 @@ export class manageStaff {
     // await expect(this.page.getByRole('toolbar')).toBeVisible({ timeout: 15000 })
   }
   async closeModal(msg: string) { //function to close dialog pop up
-    await this.closeBtn.click()
+    await this.closeBtn.first().click()
     await expect(this.modal.getByRole('dialog').getByText(msg)).not.toBeVisible({ timeout: 10000 })
   }
 
@@ -132,21 +145,6 @@ export class manageStaff {
 
   }
 
-  // async getStaffDetailsInTable(name: string) {
-
-  //   const row = this.staffTableRow.filter({ has: this.page.getByText(name, { exact: true }) })
-  //   const cells = row.locator('td')
-  //   const tierText = (await cells.nth(1).textContent())?.trim()
-
-  //   return {
-  //     name: (await cells.nth(0).textContent())?.trim() ?? '',
-  //     tier: tierText ? (tierText as string) : undefined
-  //     //  pin: (await cells.nth(2).textContent())?.trim() ?? '',
-  //     //  rate: (await cells.nth(1).textContent())?.trim() ?? '',
-  //   }
-  // }
-
-
   public getStaff(name: string) { //return selector of staff name
     const row = this.page.locator('tbody tr.q-tr', { hasText: name })
     return row
@@ -203,7 +201,7 @@ export class manageStaff {
     await this.getStaff(name).click()
 
     await expect(this.modal).toContainText('Edit Staff')
-    await this.deleteBtn.click()
+    await this.deleteBtn.first().click()
     const deleteDialog = this.page.locator('.q-dialog', { has: this.page.getByText('Confirm Delete', { exact: true }) })
     await expect(deleteDialog).toBeVisible({ timeout: 10000 })
 
