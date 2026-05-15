@@ -11,10 +11,12 @@ test.describe('Manage Staff', () => {
         staffObj = new manageStaff(page)
         await staffObj.loginPage(process.env.USERNAME!, process.env.PASSWORD!)
         await expect((page)).toHaveURL(/employee-management/) //check in correct page
-        const btn_ = page.getByRole('button', { name: /Switch to classic UI/ }); // swtich to classic mode
+        const btn_ = page.getByRole('button', { name: /Switch to classic UI/ }); // swtich to classic view
         await btn_.waitFor({ state: 'visible' });
         await btn_.click();
         await page.waitForTimeout(3000);
+
+        await staffObj.clearEnvironment() //delete all staff before test
     })
 
     //function to auto generate name and pin number
@@ -22,8 +24,6 @@ test.describe('Manage Staff', () => {
         name: `User_${Date.now()}_${Math.floor(Math.random() * 10000)}`,
         pin: `${Math.floor(1000 + Math.random() * 9000)}`
     })
-
-
 
     test('TC01[Add]-staff with valid data', async () => {
         const user = generateStaff()
@@ -38,9 +38,6 @@ test.describe('Manage Staff', () => {
 
         //only check name and tier because table only shown these 2 info
         await staffObj.checkStaffDetailsInTable({ name: user.name, tier: jsonData.tier })
-
-        //clean up
-        await staffObj.deleteStaff(user.name, "confirm")
     })
 
     test('TC02[Add]-Submit with all fields empty', async () => {
@@ -69,9 +66,7 @@ test.describe('Manage Staff', () => {
 
         await staffObj.getStaff(staff.name).click()//select user from table
         await staffObj.verifySelectedStaff({ name: staff.name, pin: staff.pin, rate: "0", tier: undefined }) //by default rate=0,tier = empty
-
         await staffObj.closeModal("Edit Staff")
-        await staffObj.deleteStaff(staff.name, "confirm")
     })
 
     test("TC04[Add]- Empty Name field or Empty PIN field (either one) ", async () => {
@@ -117,7 +112,6 @@ test.describe('Manage Staff', () => {
         //verify no extra record added
         const latestTotal = await staffObj.getTotalStaff()
         expect(latestTotal).toBe(originalTotal + 1)
-        await staffObj.deleteStaff(user.name, "confirm")
     })
 
     test("TC06[Add] - Add staff with valid data then Cancel (close form)", async () => {
@@ -132,7 +126,7 @@ test.describe('Manage Staff', () => {
         await expect(staffObj.getStaff(user.name)).not.toBeVisible()
     })
 
-
+    //edit
     test("TC07[Edit] - Edit staff with valid data ", async ({ }) => {
         const user = generateStaff()
         const dataJ = testData.profile1
@@ -154,7 +148,6 @@ test.describe('Manage Staff', () => {
         await staffObj.verifySelectedStaff({ name: editData.name, pin: editData.pin, rate: editData.rate, tier: editData.tier }) //compare data in form updated to profile 2 data
 
         await staffObj.closeModal("Edit Staff")
-        await staffObj.deleteStaff(newName, "confirm")
     })
 
     test("TC08[Edit] - Edit all required field to empty", async ({ }) => {
@@ -180,13 +173,6 @@ test.describe('Manage Staff', () => {
         await expect(await staffObj.checkFieldError("Name", "Please type something")).toBeVisible({ timeout: 10000 })
         await expect(await staffObj.checkFieldError("Staff PIN", "PIN must contain exactly 4 digits")).toBeVisible({ timeout: 10000 })
         await expect(await staffObj.checkFieldError("Staff Display Order", "Please enter a positive numbers")).toBeVisible({ timeout: 10000 })
-
-        //clean up
-        await staffObj.closeModal("Edit Staff")
-        await staffObj.deleteStaff(user.name, "confirm")
-        await expect(staffObj.getStaff(user.name)).not.toBeVisible({ timeout: 10000 })
-
-
     })
 
     test("TC09[Edit] - Edit to duplicate existing staff", async ({ page }) => {
@@ -228,13 +214,6 @@ test.describe('Manage Staff', () => {
         await expect(page.locator(`.q-field:has(input[aria-label="Staff Display Order"])`)).not.toHaveClass(/q-field--error/, { timeout: 10000 })//display order no issue to duplicate
 
         await staffObj.closeModal("Edit Staff")
-
-        //clean up
-        await staffObj.deleteStaff(staffName2, "confirm")
-        await expect(staffObj.getStaff(staffName2)).not.toBeVisible({ timeout: 10000 })
-        await staffObj.deleteStaff(staffName1, "confirm")
-        await expect(staffObj.getStaff(staffName1)).not.toBeVisible({ timeout: 10000 })
-
     })
 
     test("TC10[Edit]- invalid PIN length, invalid staff order", async ({ }) => {
@@ -264,10 +243,6 @@ test.describe('Manage Staff', () => {
         await staffObj.getStaff(user1.name).click()
         await staffObj.verifySelectedStaff({ name: user1.name, pin: user1.pin, rate: data1.rate, tier: data1.tier }) //compare table data with details in pop up form
 
-        //clean up
-        await staffObj.closeModal("Edit Staff")
-        await staffObj.deleteStaff(user1.name, "confirm")
-        await expect(staffObj.getStaff(user1.name)).not.toBeVisible({ timeout: 10000 })
     })
 
     test("TC11[Edit]- Edit staff with valid data then Cancel (close form) ", async ({ }) => {
@@ -290,14 +265,9 @@ test.describe('Manage Staff', () => {
         const latestTotal = await staffObj.getCurrentTotalStaff()
         expect(latestTotal).toBe(originalTotal) //no new staff added
 
-        //clean up
-        await staffObj.deleteStaff(user.name, "confirm")
-        await expect(staffObj.getStaff(user.name)).not.toBeVisible()
     })
 
-
     // //delete staff
-    //OK
     test("TC12[Delete] - Delete staff - OK", async ({ }) => {
         const user1 = generateStaff()
         const dataJ = testData.profile1
@@ -339,8 +309,5 @@ test.describe('Manage Staff', () => {
         //count staff
         const latestTotalFinal = await staffObj.getCurrentTotalStaff()
         expect(latestTotalFinal).toBe(originalTotal + 1)
-
-        //clean up
-        await staffObj.deleteStaff(nameUser1, "confirm")
     })
 })
