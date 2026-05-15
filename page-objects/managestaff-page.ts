@@ -44,12 +44,10 @@ export class manageStaff {
     }
   }
   async clearEnvironment() {
-    const checkStaff = await this.getCurrentTotalStaff()
-
     while ((await this.getCurrentTotalStaff()) > 0) {
       await this.page.locator('tbody tr.q-tr').first().click()
       await expect(this.modal).toContainText('Edit Staff')
-      await this.deleteBtn.first().click()
+      await this.deleteBtn.click()
       const deleteDialog = this.page.locator('.q-dialog', { has: this.page.getByText('Confirm Delete', { exact: true }) })
       await expect(deleteDialog).toBeVisible({ timeout: 10000 })
       await deleteDialog.getByRole('button', { name: 'CONFIRM' }).click()
@@ -65,7 +63,7 @@ export class manageStaff {
     // await expect(this.page.getByRole('toolbar')).toBeVisible({ timeout: 15000 })
   }
   async closeModal(msg: string) { //function to close dialog pop up
-    await this.closeBtn.first().click()
+    await this.closeBtn.click({ force: true })
     await expect(this.modal.getByRole('dialog').getByText(msg)).not.toBeVisible({ timeout: 10000 })
   }
 
@@ -120,7 +118,7 @@ export class manageStaff {
     }
 
     if (action === 'confirm') {
-      await this.confirmBtn.click()
+      await this.confirmBtn.first().click()
     }
 
     if (action === 'cancel') {
@@ -188,7 +186,7 @@ export class manageStaff {
     }
 
     if (action === 'confirm') {
-      await this.confirmBtn.click()
+      await this.confirmBtn.first().click()
     }
 
     if (action === 'cancel') {
@@ -201,12 +199,12 @@ export class manageStaff {
     await this.getStaff(name).click()
 
     await expect(this.modal).toContainText('Edit Staff')
-    await this.deleteBtn.first().click()
+    await this.deleteBtn.click()
     const deleteDialog = this.page.locator('.q-dialog', { has: this.page.getByText('Confirm Delete', { exact: true }) })
     await expect(deleteDialog).toBeVisible({ timeout: 10000 })
 
     if (action === "confirm") {
-      await deleteDialog.getByRole('button', { name: 'CONFIRM' }).click()
+      await deleteDialog.getByRole('button', { name: 'CONFIRM' }).first().click()
       await expect(this.staffTableRow.filter({ has: this.page.getByText(name, { exact: true }) })).toHaveCount(0)
       await expect(this.modal.getByText("Edit Staff")).not.toBeVisible({ timeout: 10000 })
     }
