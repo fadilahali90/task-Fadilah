@@ -1,0 +1,16 @@
+{
+  "profile1": {
+    "name": "Fadilah",
+    "pin": "9090",
+    "rate": "90",
+    "action": "confirm",
+    "tier": "Assistant"
+  },
+  "profile2": {
+    "name": "User 1",
+    "pin": "1010",
+    "rate": "30",
+    "action": "confirm",
+    "tier": "Junior"
+  }
+}
